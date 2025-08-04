@@ -10,6 +10,10 @@ interface SquareProps {
   handleMouseUp: (i: number) => void
 }
 
+const OUTLINE_COLOR = 'rgba(0, 217, 255, 1)'
+const OUTLINE_BORDER_STYLE = `1px solid  ${OUTLINE_COLOR}`
+const BASIC_BORDER_STYLE = `1px solid blue`
+
 const Square = ({
   i,
   squareHovered,
@@ -19,6 +23,11 @@ const Square = ({
   handleMouseUp,
 }: SquareProps) => {
   const [sectionHover, setSectionHover] = useState<number>()
+
+  const selectionGrid = useMemo(() => {
+    if (selectedSquares === undefined) return []
+    return [...selectedSquares].map(convertToRowCol)
+  }, [selectedSquares])
 
   const color = useMemo(() => {
     if (selectedSquares?.has(i)) return 'rgba(173, 216, 230, 0.5)'
@@ -39,11 +48,69 @@ const Square = ({
     }
   }
 
+  const isTopBorder = (): boolean => {
+    if (selectedSquares == undefined || !selectionGrid.length) return false
+    // if first row
+    const [row, col] = convertToRowCol(i)
+    if (row === selectionGrid[0][0] && selectedSquares.has(i)) return true
+
+    // or one after last
+    if (
+      row === selectionGrid[selectionGrid.length - 1][0] + 1 &&
+      selectionGrid.find((cell) => cell[1] === col)
+    )
+      return true
+    return false
+  }
+
+  const isLeftBorder = (): boolean => {
+    if (selectedSquares == undefined || !selectionGrid.length) return false
+    // if first col
+    const [row, col] = convertToRowCol(i)
+    if (col === selectionGrid[0][1] && selectedSquares.has(i)) return true
+
+    // if after last col
+    if (
+      col === selectionGrid[selectionGrid.length - 1][1] + 1 &&
+      selectionGrid.find((cell) => cell[0] === row)
+    )
+      return true
+    return false
+  }
+
+  const isBottomBorder = (): Boolean => {
+    if (selectedSquares == undefined || !selectionGrid.length) return false
+    // last row
+    const [row, col] = convertToRowCol(i)
+    if (row === selectionGrid[selectionGrid.length - 1][0] && selectedSquares.has(i)) return true
+
+    // one before first
+    if (row === selectionGrid[0][0] - 1 && selectionGrid.find((cell) => cell[1] === col))
+      return true
+    return false
+  }
+
+  const isRightBorder = (): Boolean => {
+    if (selectedSquares == undefined || !selectionGrid.length) return false
+
+    // last col
+    const [row, col] = convertToRowCol(i)
+    if (col === selectionGrid[selectionGrid.length - 1][1] && selectedSquares.has(i)) return true
+
+    // one before first
+    if (col === selectionGrid[0][1] - 1 && selectionGrid.find((cell) => cell[0] === row))
+      return true
+    return false
+  }
+
   return (
     <div
       key={i}
       style={{
-        border: '1px solid blue',
+        borderLeft: isLeftBorder() ? OUTLINE_BORDER_STYLE : BASIC_BORDER_STYLE,
+        borderTop: isTopBorder() ? OUTLINE_BORDER_STYLE : BASIC_BORDER_STYLE,
+        borderBottom: isBottomBorder() ? OUTLINE_BORDER_STYLE : BASIC_BORDER_STYLE,
+        borderRight: isRightBorder() ? OUTLINE_BORDER_STYLE : BASIC_BORDER_STYLE,
         backgroundColor: color,
         display: 'grid',
         gridTemplateRows: 'repeat(2, 1fr)',
@@ -67,7 +134,7 @@ const Square = ({
                     width: 8,
                     height: 8,
                     borderRadius: '50%',
-                    backgroundColor: 'blue',
+                    backgroundColor: OUTLINE_COLOR,
                     position: 'absolute',
                     overflow: 'visible',
                     ...getDotPosition(j),

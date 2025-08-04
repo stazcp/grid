@@ -20,17 +20,16 @@ function App() {
 
   const handleMouseUp = (i: number) => {
     setMouseUp(i)
+    setMouseDown(undefined)
   }
 
   useEffect(() => {
-    if (mouseDown === undefined || mouseUp == undefined) return
+    if (mouseDown === undefined || squareHovered == undefined) return
     const startCell = convertToRowCol(mouseDown)
-    const endCell = convertToRowCol(mouseUp)
+    const endCell = convertToRowCol(squareHovered)
     const squares = getSelectedSquares(startCell, endCell)
-    setMouseDown(undefined)
-    setMouseUp(undefined)
     setSelectedSquares(new Set(squares))
-  }, [mouseDown, mouseUp, squareHovered])
+  }, [mouseDown, squareHovered])
 
   return (
     <div
