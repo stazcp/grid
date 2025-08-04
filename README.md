@@ -1,11 +1,46 @@
-# React + TypeScript + Vite
+# Interactive Image Grid Selection
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React + TypeScript + Vite application featuring an interactive image grid with precise corner-based selection.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Interactive Grid Selection**: Click and drag to select regions with pixel-perfect precision
+- **Corner-Based Selection**: Selection boundaries follow the exact corner positions
+- **Visual Feedback**: Hover effects and corner dots show precise selection boundaries
+- **Responsive Design**: Works on desktop and mobile devices
+- **Modern CSS**: Uses CSS Grid, custom properties, and smooth animations
+
+## Development
+
+```bash
+# Install dependencies
+pnpm install
+
+# Start development server
+pnpm dev
+
+# Build for production
+pnpm build
+
+# Preview production build
+pnpm preview
+```
+
+## Deployment
+
+This project is configured for automatic deployment to GitHub Pages using GitHub Actions. The workflow will:
+
+1. Build the project using pnpm
+2. Deploy to GitHub Pages on every push to main branch
+3. Cache dependencies for faster builds
+
+## Technology Stack
+
+- **React 19** with TypeScript
+- **Vite** for fast development and building
+- **CSS Grid** for layout
+- **CSS Custom Properties** for theming
+- **pnpm** for package management
 
 ## Expanding the ESLint configuration
 
