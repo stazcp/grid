@@ -1,18 +1,14 @@
-import { useMemo, useState } from 'react'
-import { convertToRowCol } from '../utils'
+import { useMemo } from 'react'
+import { getBorderStates } from '../utils'
 
 interface SquareProps {
   i: number
   squareHovered: number | undefined
   selectedSquares: Set<number> | undefined
-  handleMouseOver: (i: number) => void
-  handleMouseDown: (i: number) => void
-  handleMouseUp: (i: number) => void
+  handleMouseOver: (i: number, section?: number) => void
+  handleMouseDown: (i: number, section?: number) => void
+  handleMouseUp: () => void
 }
-
-const OUTLINE_COLOR = 'rgba(0, 217, 255, 1)'
-const OUTLINE_BORDER_STYLE = `1px solid  ${OUTLINE_COLOR}`
-const BASIC_BORDER_STYLE = `1px solid blue`
 
 const Square = ({
   i,
@@ -22,126 +18,58 @@ const Square = ({
   handleMouseDown,
   handleMouseUp,
 }: SquareProps) => {
-  const [sectionHover, setSectionHover] = useState<number>()
+  const borderStates = useMemo(() => {
+    if (!selectedSquares) return { top: false, right: false, bottom: false, left: false }
+    return getBorderStates(i, selectedSquares)
+  }, [selectedSquares, i])
 
-  const selectionGrid = useMemo(() => {
-    if (selectedSquares === undefined) return []
-    return [...selectedSquares].map(convertToRowCol)
-  }, [selectedSquares])
+  const squareClasses = useMemo(() => {
+    const classes = ['grid-square']
 
-  const color = useMemo(() => {
-    if (selectedSquares?.has(i)) return 'rgba(173, 216, 230, 0.5)'
-    if (squareHovered == i) return 'rgba(173, 216, 230, 0.25)'
-    return ''
-  }, [selectedSquares, squareHovered, i])
+    if (selectedSquares?.has(i)) classes.push('selected')
+    if (squareHovered === i) classes.push('hovered')
+    if (borderStates.top) classes.push('border-top')
+    if (borderStates.right) classes.push('border-right')
+    if (borderStates.bottom) classes.push('border-bottom')
+    if (borderStates.left) classes.push('border-left')
 
-  const getDotPosition = (i: number) => {
-    switch (i) {
-      case 0:
-        return { top: -4, left: -4 }
-      case 1:
-        return { top: -4, right: -4 }
-      case 2:
-        return { bottom: -4, left: -4 }
-      case 3:
-        return { bottom: -4, right: -4 }
-    }
+    return classes.join(' ')
+  }, [selectedSquares, squareHovered, i, borderStates])
+
+  const getDotClass = (index: number): string => {
+    // Map each section to its outer corner position
+    const positions = [
+      'outer-top-left',
+      'outer-top-right',
+      'outer-bottom-left',
+      'outer-bottom-right',
+    ]
+    return `corner-dot ${positions[index]}`
   }
 
-  const isTopBorder = (): boolean => {
-    if (selectedSquares == undefined || !selectionGrid.length) return false
-    // if first row
-    const [row, col] = convertToRowCol(i)
-    if (row === selectionGrid[0][0] && selectedSquares.has(i)) return true
-
-    // or one after last
-    if (
-      row === selectionGrid[selectionGrid.length - 1][0] + 1 &&
-      selectionGrid.find((cell) => cell[1] === col)
-    )
-      return true
-    return false
+  const handleSectionMouseOver = (section: number) => {
+    handleMouseOver(i, section)
   }
 
-  const isLeftBorder = (): boolean => {
-    if (selectedSquares == undefined || !selectionGrid.length) return false
-    // if first col
-    const [row, col] = convertToRowCol(i)
-    if (col === selectionGrid[0][1] && selectedSquares.has(i)) return true
-
-    // if after last col
-    if (
-      col === selectionGrid[selectionGrid.length - 1][1] + 1 &&
-      selectionGrid.find((cell) => cell[0] === row)
-    )
-      return true
-    return false
+  const handleSectionMouseDown = (section: number) => {
+    handleMouseDown(i, section)
   }
 
-  const isBottomBorder = (): Boolean => {
-    if (selectedSquares == undefined || !selectionGrid.length) return false
-    // last row
-    const [row, col] = convertToRowCol(i)
-    if (row === selectionGrid[selectionGrid.length - 1][0] && selectedSquares.has(i)) return true
-
-    // one before first
-    if (row === selectionGrid[0][0] - 1 && selectionGrid.find((cell) => cell[1] === col))
-      return true
-    return false
-  }
-
-  const isRightBorder = (): Boolean => {
-    if (selectedSquares == undefined || !selectionGrid.length) return false
-
-    // last col
-    const [row, col] = convertToRowCol(i)
-    if (col === selectionGrid[selectionGrid.length - 1][1] && selectedSquares.has(i)) return true
-
-    // one before first
-    if (col === selectionGrid[0][1] - 1 && selectionGrid.find((cell) => cell[0] === row))
-      return true
-    return false
+  const handleSectionMouseUp = () => {
+    handleMouseUp()
   }
 
   return (
-    <div
-      key={i}
-      style={{
-        borderLeft: isLeftBorder() ? OUTLINE_BORDER_STYLE : BASIC_BORDER_STYLE,
-        borderTop: isTopBorder() ? OUTLINE_BORDER_STYLE : BASIC_BORDER_STYLE,
-        borderBottom: isBottomBorder() ? OUTLINE_BORDER_STYLE : BASIC_BORDER_STYLE,
-        borderRight: isRightBorder() ? OUTLINE_BORDER_STYLE : BASIC_BORDER_STYLE,
-        backgroundColor: color,
-        display: 'grid',
-        gridTemplateRows: 'repeat(2, 1fr)',
-        gridTemplateColumns: 'repeat(2, 1fr)',
-      }}
-      onMouseOver={() => handleMouseOver(i)}
-      onMouseDown={() => handleMouseDown(i)}
-      onMouseUp={() => handleMouseUp(i)}
-    >
+    <div className={squareClasses}>
       {Array.from({ length: 4 }, (_, j) => (
         <div
           key={j}
-          style={{ position: 'relative' }}
-          onMouseOver={() => setSectionHover(j)}
-          onMouseOut={() => setSectionHover(undefined)}
+          className="square-section"
+          onMouseOver={() => handleSectionMouseOver(j)}
+          onMouseDown={() => handleSectionMouseDown(j)}
+          onMouseUp={handleSectionMouseUp}
         >
-          <div
-            style={
-              sectionHover == j
-                ? {
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    backgroundColor: OUTLINE_COLOR,
-                    position: 'absolute',
-                    overflow: 'visible',
-                    ...getDotPosition(j),
-                  }
-                : {}
-            }
-          />
+          <div className={getDotClass(j)} />
         </div>
       ))}
     </div>
